@@ -1,0 +1,60 @@
+diff -Naur a/meson.build b/meson.build
+--- a/meson.build	2023-10-31 13:04:32.024435107 +0800
++++ b/meson.build	2023-10-31 13:05:45.096430637 +0800
+@@ -213,8 +213,7 @@
+   ]
+ endif
+ 
+-dearimgui_sp = subproject('imgui', default_options: imgui_options)
+-dearimgui_dep = dearimgui_sp.get_variable('imgui_dep')
++dearimgui_dep = dependency('imgui')
+ 
+ spdlog_dep = cpp.find_library('spdlog', required: get_option('use_system_spdlog'))
+ if not spdlog_dep.found()
+diff -Naur a/src/overlay.h b/src/overlay.h
+--- a/src/overlay.h	2023-09-26 14:29:47.000000000 +0800
++++ b/src/overlay.h	2023-10-31 13:20:03.317378148 +0800
+@@ -6,8 +6,8 @@
+ #include <stdint.h>
+ #include <vector>
+ #include <deque>
+-#include <imgui.h>
+-#include "imgui_internal.h"
++#include <imgui/imgui.h>
++#include <imgui/imgui_internal.h>
+ #include "overlay_params.h"
+ #include "hud_elements.h"
+ #include "engine_types.h"
+diff -Naur a/src/overlay.cpp b/src/overlay.cpp
+--- a/src/overlay.cpp	2023-10-31 13:40:40.727302467 +0800
++++ b/src/overlay.cpp	2023-10-31 13:40:13.633304124 +0800
+@@ -433,7 +433,7 @@
+ 
+ static float get_ticker_limited_pos(float pos, float tw, float& left_limit, float& right_limit)
+ {
+-   //float cw = ImGui::GetContentRegionAvailWidth() * 3; // only table cell worth of width
++   //float cw = ImGui::GetContentRegionAvail().x * 3; // only table cell worth of width
+    float cw = ImGui::GetWindowContentRegionMax().x - ImGui::GetStyle().WindowPadding.x;
+    float new_pos_x = ImGui::GetCursorPosX();
+    left_limit = cw - tw + new_pos_x;
+@@ -582,9 +582,9 @@
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0, 0.0, 0.0, alpha / params.background_alpha));
+    ImGui::Dummy(ImVec2(0.0f, 8.0f));
+    if (params.enabled[OVERLAY_PARAM_ENABLED_histogram])
+-      ImGui::PlotHistogram("", benchmark.fps_data.data(), benchmark.fps_data.size(), 0, "", 0.0f, max + 10, ImVec2(ImGui::GetContentRegionAvailWidth(), 50));
++      ImGui::PlotHistogram("", benchmark.fps_data.data(), benchmark.fps_data.size(), 0, "", 0.0f, max + 10, ImVec2(ImGui::GetContentRegionAvail().x, 50));
+    else
+-      ImGui::PlotLines("", benchmark.fps_data.data(), benchmark.fps_data.size(), 0, "", 0.0f, max + 10, ImVec2(ImGui::GetContentRegionAvailWidth(), 50));
++      ImGui::PlotLines("", benchmark.fps_data.data(), benchmark.fps_data.size(), 0, "", 0.0f, max + 10, ImVec2(ImGui::GetContentRegionAvail().x, 50));
+    ImGui::PopStyleColor(2);
+    ImGui::End();
+ }
+@@ -683,7 +683,7 @@
+             if (HUDElements.table_columns_count > 0 && HUDElements.table_columns_count < 65 )
+                params.table_columns = HUDElements.table_columns_count;
+             if(!params.enabled[OVERLAY_PARAM_ENABLED_horizontal_stretch]) {
+-               float content_width = ImGui::GetContentRegionAvailWidth() - (params.table_columns * 64);
++               float content_width = ImGui::GetContentRegionAvail().x - (params.table_columns * 64);
+                window_size = ImVec2(content_width, params.height);
+             }
+          }
